@@ -23,15 +23,16 @@ import java.util.stream.Stream;
  */
 public class Main {
     
-    final static String[] bugs = new String[]{"Common Butterfly", "Yellow Butterfly", "Tiger Butterfly", "Peacock Butterfly",
-        "Monarch Butterfly", "Emperor Butterfly", "Agrias Butterfly", "Raja Brooke", "Birdwing", "Moth", "Oak Silk Moth", "Honeybee",
-        "Bee", "Long Locust", "Migratory Locust", "Mantis", "Orchid Mantis", "Brown Cicada", "Robust Cicada", "Walker Cicada",
-        "Evening Cicada", "Lantern Fly", "Red Dragonfly", "Darner Dragonfly", "Banded Dragonfly", "Giant Petaltail", "Ant",
-        "Pondskater", "Diving Beetle", "Snail", "Cricket", "Bell Cricket", "Grasshopper", "Mole Cricket", "Walking Leaf",
-        "Walkingstick", "Bagworm", "Ladybug", "Violin Beetle", "Longhorn Beetle", "Dung Beetle", "Firefly", "Fruit Beetle",
-        "Scarab Beetle", "Jewel Beetle", "Miyama Stag", "Saw Stag", "Giant Stag", "Rainbow Stag", "Cyclommatus", "Golden Stag",
-        "Dynastid Beetle", "Atlas Beetle", "Elephant Beetle", "Hercules Beetle", "Goliath Beetle", "Flea", "Pill Bug", "Mosquito",
-        "Fly", "Centipede", "Spider", "Tarantula", "Scorpion"};
+    final static String[] bugs = new String[]{"Common Butterfly", "Yellow Butterfly", "Tiger Butterfly", "Peacock", "Monarch",
+                                                "Emperor", "Agrias Butterfly", "Birdwing", "Moth", "Oak Silk Moth", "Honeybee",
+                                                "Bee", "Long Locust", "Migratory Locust", "Mantis", "Orchid Mantis", "Brown Cicada",
+                                                "Robust Cicada", "Walker Cicada", "Evening Cicada", "Lantern Fly", "Red Dragonfly",
+                                                "Darner Dragonfly", "Banded Dragonfly", "Ant", "Pondskater", "Snail","Cricket",
+                                                "Bell Cricket", "Grasshopper", "Mole Cricket", "Walkingstick", "Ladybug", "Fruit Beetle",
+                                                "Scarab Beetle", "Dung Beetle","Goliath Beetle", "Firefly", "Jewel Beetle", "Longhorn Beetle",
+                                                "Saw Stag Beetle", "Stag Beetle", "Giant Beetle", "Rainbow Stag", "Dynastid Beetle",
+                                                "Atlas Beetle", "Elephant Beetle", "Hercules Beetle", "Flea", "Pill Bug", "Mosquito",
+                                                "Fly", "Cockroach", "Spider", "Tarantula", "Scorpion"};
     
     // fins size 7, eel size 8 for distinguishing purposes
     final static Fish[] fish = new Fish[]{
@@ -101,8 +102,12 @@ public class Main {
     final static String[] fishTimes = new String[]{"4AM - 9AM, 4PM - 9PM", "9AM - 4PM", "9PM - 4AM"};
     
     // In Ghidra export, there is no 0x02 at the beginning... otherwise it lines up exactly
-    final static int fishTopLevelAddr = 0xdb254;
-    final static int addrOffset = 0x2000000;
+    final static int BUGS_TOP_LEVEL_ADDR = 0xdca8c;
+    final static int FISH_TOP_LEVEL_ADDR = 0xdb254;
+    final static int ADDR_OFFSET = 0x2000000;
+    
+    final static String[] monthNames = new String[] {"January", "February", "March", "April", "May", "June", "July",
+                                                        "August", "September", "October", "November", "December"};
     
     final static String[] fishMonthNames = new String[] {"January", "February", "March", "April", "May", "June", "July", "August (1-15)",
                                                         "August (16-31)", "September (1-15)", "September (16-30)", "October", "November",
@@ -117,12 +122,14 @@ public class Main {
     static String[][] fishShadowBasedStringArray = new String[60][42];
     static Double[][] fishSpawnWeightDoubleArray = new Double[60][42];
     static Double[][] fishShadowBasedDoubleArray = new Double[60][42];
+    static Double[][] bugBasePercentagesArray = new Double[56][72];
     
     static String binPathStr = "C:/Users/drewp/ww.bin";
     static String fishPercentagesStringCsv = "C:/Users/drewp/Desktop/ww_fish_percentages_string.csv";
     static String fishShadowPercentagesStringCsv = "C:/Users/drewp/Desktop/ww_fish_shadow_percentages_string.csv";
     static String fishPercentagesDoubleCsv = "C:/Users/drewp/Desktop/ww_fish_percentages_double.csv";
     static String fishShadowPercentagesDoubleCsv = "C:/Users/drewp/Desktop/ww_fish_shadow_percentages_double.csv";
+    static String bugPercentagesCsv = "C:/Users/drewp/Desktop/ww_bug_percentages.csv";
 
     public static void main(String[] args) {
         
@@ -135,6 +142,12 @@ public class Main {
             }
         }
         
+        for(int i=0; i < 56; i++){
+            for(int j = 0; j < 72; j++){
+                bugBasePercentagesArray[i][j] = 0.0;
+            }
+        }
+        
         // display the pane, and get the file path + options (?) back
 //        String dolPathStr = LoadDolDialog.display();
         
@@ -143,106 +156,23 @@ public class Main {
             System.exit(0);
         }
         
-        // lol
-//        boolean parseBugs = false;
-//        String result = parseBugData(dolPathStr);
-
-        boolean isOcean = true;
-
-        String result = parseFishData(binPathStr);
-//        System.out.println(result);
+        String bugs = parseBugData(binPathStr);
+        System.out.println(bugs);
+        String fish = parseFishData(binPathStr);
+        System.out.println(fish);
         
         // process all of the fish spawn weights
         String riverSpawnWeights = processRiverFishSpawnWeights();
         String oceanSpawnWeights = processOceanFishSpawnWeights();
-        System.out.println(riverSpawnWeights);
-        System.out.println(oceanSpawnWeights);
+//        System.out.println(riverSpawnWeights);
+//        System.out.println(oceanSpawnWeights);
         
         // write %s and shadow-based% to .csv files
         writeFishToCsv();
+        writeBugsToCsv();
     }
     
-//    private static String parseBugData(String dolPathStr){
-//        StringBuilder result = new StringBuilder();
-//        
-//        // parse main.dol!
-//        try{
-//            Path dolPath = Paths.get(dolPathStr);
-//            
-//            byte[] data = null;
-//            try {
-//                data = Files.readAllBytes(dolPath);
-//            } catch (IOException ex) {
-//                System.out.println("Exception while reading main.dol byte array:\n" + ex);
-//                System.exit(0);
-//            }
-//            
-//            ByteBuffer bb = ByteBuffer.wrap(data);
-//            // BIG
-//            bb.order(ByteOrder.BIG_ENDIAN);
-//            
-//            // month counter
-//            int monthId = 0;
-//            
-//            for(MonthPair m: bugAddrs){
-//                StringBuilder sb = new StringBuilder();
-//                sb.append("\n").append(m.getMonth()).append(":\n");
-//                int startOffset = Integer.parseInt(String.valueOf(m.getAddress()), 16);
-//                int endOffset = (monthId < 11) ? Integer.parseInt(bugAddrs[monthId+1].getAddress(), 16) : Integer.parseInt("4E9350", 16);
-//                int lastId = 999;
-//                int lastSpawnRange = 0;
-//                int timeOfDayId = -1;
-//                while(startOffset < endOffset){
-//                    
-//                    // no unsigned ints... this is necessary to read an int from 2 bytes
-//                    byte[] bytes = new byte[4];
-//                    bb.get(startOffset, bytes, 0, 4);
-//                  
-//                    // first two bytes are the bug ID
-//                    int bugId = ((bytes[0] & 0xff) << 8) | (bytes[1] & 0xff);
-//                    
-//                    // second two bytes are the spawn range upper value
-//                    int upperSpawnRange = ((bytes[2] & 0xff) << 8) | (bytes[3] & 0xff);
-//                    
-//                    if(bugId <= lastId){
-//                        sb.append("\n");
-//                        lastId = -1;
-//                        lastSpawnRange = 0;
-//                        timeOfDayId++;
-//                        if(timeOfDayId < 6){
-//                            sb.append(bugTimes[timeOfDayId]).append("\n");
-//                        }
-//                    }
-//                    
-//                    String bugName = bugs[bugId];
-//                    int spawnWeight = upperSpawnRange - lastSpawnRange;
-//
-//                    // sometimes, there are 4 bytes of 0x0 that this is picking up as common butterfly... so ignore anything with weight 0
-//                    if(spawnWeight != 0){
-//                        sb.append(String.format("%1$18s", bugName)).append("\t").append(spawnWeight).append("\n");
-//                    }
-//                    
-//                    lastId = bugId;
-//                    lastSpawnRange = upperSpawnRange;
-//                    
-//                    startOffset += 4;
-//                }
-//                
-////                System.out.println(sb);
-//                result.append(sb);
-//                
-//                monthId++;
-//            }
-//            
-//        } catch(Exception ex){
-//            System.out.println("Exception " + ex);
-//        }
-//        
-//        return result.toString();
-//    }
-    
-    private static String parseFishData(String dolPathStr){
-        
+    private static String parseBugData(String dolPathStr){
         StringBuilder result = new StringBuilder();
         
         try{
@@ -251,6 +181,92 @@ public class Main {
             byte[] data = null;
             try {
                 data = Files.readAllBytes(dolPath);
+            } catch (IOException ex) {
+                System.out.println("Exception while reading ww.bin byte array:\n" + ex);
+                System.exit(0);
+            }
+            
+            ByteBuffer bb = ByteBuffer.wrap(data);
+            // little
+            bb.order(ByteOrder.LITTLE_ENDIAN);
+            
+            for(int monthId = 0; monthId < 12; monthId++){
+                StringBuilder sb = new StringBuilder();
+                sb.append("\n").append(monthNames[monthId]).append(":\n");                
+                
+                // Level 1: get the PTR PTR for this month
+                long monthPtrPtr = ((long) bb.getInt(BUGS_TOP_LEVEL_ADDR + (4*monthId)) & 0xffffffffL) - ADDR_OFFSET;
+//                System.out.println(fishMonthNames[monthId] + " monthPtrPtr " + Integer.toHexString((int) monthPtrPtr));
+                
+                // Level 2: 3 time of day pointers for this month
+                for(int timeOfDayId = 0; timeOfDayId < 6; timeOfDayId++){
+                    
+                    sb.append("\n").append(bugTimes[timeOfDayId]).append("\n");
+                    
+                    // Note: the lowest level pointers have 4 bytes of [something] in between them - hence *8
+                    long bugDataAddr = ((long) bb.getInt(((int) monthPtrPtr) + (timeOfDayId*8))) - ADDR_OFFSET;
+//                    System.out.println("For time of day ID " + timeOfDayId + " got timeOfDayPtr " + Integer.toHexString((int)timeOfDayPtr));
+
+                    int bugId = 0;
+                    int lastBugId = 0;
+                    int bugIndex = 0;
+                    int lastSpawnRange = 0;
+                    
+                    while(lastSpawnRange < 100){
+
+                        byte[] bugBytes = new byte[2];
+                        bb.get((int) (bugDataAddr + (bugIndex * 2)), bugBytes, 0, 2);
+
+                        // first byte is the bug ID
+                        bugId = Byte.toUnsignedInt(bugBytes[0]);
+                        
+                        if(bugId < lastBugId || bugId > 56 || bugId < 0){
+                            break;
+                        }
+
+                        // second byte is the upper spawn range
+                        int upperSpawnRange = Byte.toUnsignedInt(bugBytes[1]);
+                        
+                        int spawnWeight = upperSpawnRange - lastSpawnRange;
+
+                        String bugName = bugs[bugId];
+
+                        sb.append(String.format("%1$18s", bugName)).append("\t").append(spawnWeight).append("\n");
+                        
+                        // store the percentage (/100.0) in the array at the proper place...
+                        bugBasePercentagesArray[bugId][(monthId*6) + timeOfDayId] = 1.0*spawnWeight;
+                        
+                        bugIndex++;
+                        lastSpawnRange = upperSpawnRange;
+                        lastBugId = bugId;
+                    }
+                }
+                
+                result.append(sb);
+            }
+            
+//            System.out.println(result);
+            
+            return result.toString();
+            
+        } catch(Exception ex){
+            System.out.println("Exception " + ex);
+            ex.printStackTrace();
+            
+            return result.toString();
+        }
+    }
+    
+    private static String parseFishData(String dolPathStr){
+        
+        StringBuilder result = new StringBuilder();
+        
+        try{
+            Path binPath = Paths.get(dolPathStr);
+            
+            byte[] data = null;
+            try {
+                data = Files.readAllBytes(binPath);
             } catch (IOException ex) {
                 System.out.println("Exception while reading ww.bin byte array:\n" + ex);
                 System.exit(0);
@@ -284,7 +300,7 @@ public class Main {
                 oceanMonthlySpawnWeightsMap.put(2, oceanNightWeights);
                 
                 // Level 1: get the PTR PTR for this month
-                long monthPtrPtr = ((long) bb.getInt(fishTopLevelAddr + (4*monthId)) & 0xffffffffL) - addrOffset;
+                long monthPtrPtr = ((long) bb.getInt(FISH_TOP_LEVEL_ADDR + (4*monthId)) & 0xffffffffL) - ADDR_OFFSET;
 //                System.out.println(fishMonthNames[monthId] + " monthPtrPtr " + Integer.toHexString((int) monthPtrPtr));
                 
                 // Level 2: 3 time of day pointers for this month
@@ -292,7 +308,7 @@ public class Main {
                     
                     sb.append("\n").append(fishTimes[timeOfDayId]).append("\n");
                     
-                    long timeOfDayPtr = ((long) bb.getInt(((int) monthPtrPtr) + (timeOfDayId*4))) - addrOffset;
+                    long timeOfDayPtr = ((long) bb.getInt(((int) monthPtrPtr) + (timeOfDayId*4))) - ADDR_OFFSET;
 //                    System.out.println("For time of day ID " + timeOfDayId + " got timeOfDayPtr " + Integer.toHexString((int)timeOfDayPtr));
                     
                     // Level 3: river + ocean pointers
@@ -302,7 +318,7 @@ public class Main {
                         
                         // Level 4: Parse the fish spawn data
                         // Note: the lowest level pointers have 4 bytes of [something] in between them - hence *8
-                        long fishDataAddr = ((long) bb.getInt(((int) timeOfDayPtr) + (isOcean*8))) - addrOffset;
+                        long fishDataAddr = ((long) bb.getInt(((int) timeOfDayPtr) + (isOcean*8))) - ADDR_OFFSET;
 //                        System.out.println("For isOcean " + isOcean + " got fishDataAddr " + Integer.toHexString((int)fishDataAddr));
                         
                         int fishId = -1;
@@ -356,8 +372,6 @@ public class Main {
             }
             
 //            System.out.println(result);
-            
-            // TODO process fish and ocean spawn weights somewhere
             
             return result.toString();
             
@@ -845,6 +859,18 @@ public class Main {
         try (PrintWriter pw = new PrintWriter(fishShadowPercentagesDoubleCsv)) {
             for(int fishIndex = 0; fishIndex < 60; fishIndex++){
                 String csvLine = getCsvLineFromDoubles(fishShadowBasedDoubleArray[fishIndex]);
+                pw.println(csvLine);
+            }
+        } catch(Exception ex){
+            System.out.println("Exception printing fish percentages");
+            ex.printStackTrace();
+        }
+    }
+    
+    private static void writeBugsToCsv(){
+        try (PrintWriter pw = new PrintWriter(bugPercentagesCsv)) {
+            for(int bugIndex = 0; bugIndex < 56; bugIndex++){
+                String csvLine = getCsvLineFromDoubles(bugBasePercentagesArray[bugIndex]);
                 pw.println(csvLine);
             }
         } catch(Exception ex){
