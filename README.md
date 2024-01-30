@@ -1,4 +1,6 @@
-# Animal-Crossing-City-Folk-spawn-data-parsing
-Some code I used to parse out Bug/Fish spawn data (Fish TODO)
+# Animal Crossing: Wild World - Data parsing
+Code I used to parse out Fish + Bug spawn data in AC:WW
 
-My notes on this entire process can be found here: https://docs.google.com/document/d/1lkn7rv3Jqy9uC6D1PxFNCgz7qDoOHUEmvsAsTAQR0Pg/edit?usp=sharing
+Data spreadsheet here: https://docs.google.com/spreadsheets/d/11CysW9iuOeit6pCuAeJlW9Pj4Cjiw9isc8MIOAWS97c
+
+Some notes here: https://docs.google.com/document/d/1e0UtgIxDX79i1ZPtZ_oLrxHOvJ1H1U2YV9wosBz2R9I/edit?usp=sharing
