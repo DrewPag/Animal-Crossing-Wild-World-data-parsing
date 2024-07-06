@@ -91,7 +91,7 @@ public class Main {
         new Fish(52, "Ocean Sunfish", 7),
         new Fish(53, "Hammerhead Shark", 7),
         new Fish(54, "Shark", 7),
-        new Fish(55, "Coelacanth", 6),
+        new Fish(55, "Coelacanth", 5),
         new Fish(56, "Can", 2), 
         new Fish(57, "Boot", 3), 
         new Fish(58, "Tire", 4)
@@ -162,7 +162,7 @@ public class Main {
         System.out.println(fish);
         
         // process all of the fish spawn weights
-        String riverSpawnWeights = processRiverFishSpawnWeights();
+        //String riverSpawnWeights = processRiverFishSpawnWeights();
         String oceanSpawnWeights = processOceanFishSpawnWeights();
 //        System.out.println(riverSpawnWeights);
 //        System.out.println(oceanSpawnWeights);
@@ -645,8 +645,9 @@ public class Main {
                 double SSpawnWeight = 0;
                 double MSpawnWeight = 0;
                 double LOceanSpawnWeight = 0;
-                double LRiverMouthSpawnWeight = 0;
-                double LLSpawnWeight = 0;
+                double LLOceanSpawnWeight = 0;
+                double LLRiverMouthSpawnWeight = 0;
+                double LLOceanRainSpawnWeight = 0;
                 double LLLOceanSpawnWeight = 0;
                 double LLLRiverMouthSpawnWeight = 0;
                 double finSpawnWeight = 0;
@@ -663,6 +664,7 @@ public class Main {
                             break;
                         
                         // Ocean
+                        // for total spawn weight purposes, coelacanth is the same as other ocean fish
                         case 6:
                             oceanSpawnWeight += w;
                             break;
@@ -686,16 +688,22 @@ public class Main {
                             
                         // Large (L)
                         case 4:
-                            if(fsw.getAcreId() == 4){
-                                LRiverMouthSpawnWeight += w;
-                            } else{
-                                LOceanSpawnWeight += w;
-                            }
+                            LOceanSpawnWeight += w;
                             break;
                             
                         // Extra Large (LL)
                         case 5:
-                            LLSpawnWeight += w;
+                            if(fsw.getAcreId() == 4){
+                                LLRiverMouthSpawnWeight += w;
+                            } else{
+                                // Coelcanth has the same acre ID as the other ocean fish... so check the actual fish ID
+                                if(fsw.getFishId() == 55){
+                                    LLOceanRainSpawnWeight += w;
+                                } else{
+                                    LLOceanSpawnWeight += w;
+                                }
+                            }
+                            
                             break;
                             
                         // Huge (LLL)
@@ -747,16 +755,22 @@ public class Main {
                             
                         // Large (L)
                         case 4:
-                            if(fsw.getAcreId() == 4){
-                                totalWeightToUse = LRiverMouthSpawnWeight + LOceanSpawnWeight;
-                            } else{
-                                totalWeightToUse = LOceanSpawnWeight;
-                            }
+                            totalWeightToUse = LOceanSpawnWeight;
                             break;
                             
                         // Extra Large (LL)
                         case 5:
-                            totalWeightToUse = LLSpawnWeight;
+                            if(fsw.getAcreId() == 4){
+                                totalWeightToUse = LLRiverMouthSpawnWeight + LOceanSpawnWeight;
+                            } else{
+                                // Coelcanth has the same acre ID as the other ocean fish... so check the actual fish ID
+                                if(fsw.getFishId() == 55){
+                                    totalWeightToUse = LLOceanSpawnWeight + LLOceanRainSpawnWeight;
+                                } else{
+                                    totalWeightToUse = LLOceanSpawnWeight;
+                                }
+                            }
+                            
                             break;
                             
                         // Huge (LLL)
